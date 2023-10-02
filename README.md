@@ -76,3 +76,55 @@ class Program
         }
     }
 }
+
+
+
+
+
+
+XML File.
+
+<Student>
+    <Name>John Doe</Name>
+    <Age>25</Age>
+</Student>
+
+
+
+Deserialization code
+
+
+using System;
+using System.IO;
+using System.Xml.Serialization;
+
+// Define a class that matches the XML structure
+[Serializable]
+public class Student
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        // Read the XML data from the file
+        string xmlData = File.ReadAllText("student.xml");
+
+        // Create an XmlSerializer for the Student class
+        XmlSerializer serializer = new XmlSerializer(typeof(Student));
+
+        // Deserialize the XML data into a Student object
+        using (TextReader reader = new StringReader(xmlData))
+        {
+            Student student = (Student)serializer.Deserialize(reader);
+
+            // Access the deserialized object's properties
+            Console.WriteLine("Name: " + student.Name);
+            Console.WriteLine("Age: " + student.Age);
+        }
+    }
+}
+
