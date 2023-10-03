@@ -8,37 +8,45 @@ using System.Xml;
 
 class Program
 {
-    static void Main()
+    static void Main1()
     {
-        // Create an XML document
+        // Create a new XML document
         XmlDocument xmlDoc = new XmlDocument();
 
         // Create the root element
         XmlElement rootElement = xmlDoc.CreateElement("Students");
         xmlDoc.AppendChild(rootElement);
 
-        // Create a student element
-        XmlElement studentElement = xmlDoc.CreateElement("Student");
-        rootElement.AppendChild(studentElement);
-
-        // Add attributes to the student element
-        studentElement.SetAttribute("ID", "1");
-
-        // Add child elements to the student element
-        XmlElement nameElement = xmlDoc.CreateElement("Name");
-        nameElement.InnerText = "John Doe";
-        studentElement.AppendChild(nameElement);
-
-        XmlElement ageElement = xmlDoc.CreateElement("Age");
-        ageElement.InnerText = "25";
-        studentElement.AppendChild(ageElement);
+        // Add three sets of name, age, and ID elements
+        AddStudent(xmlDoc, rootElement, "Dipankar", 25, 1);
+        AddStudent(xmlDoc, rootElement, "Debajani", 25, 2);
+        AddStudent(xmlDoc, rootElement, "Brajendra", 25, 3);
 
         // Save the XML document to a file
-        xmlDoc.Save("students.xml");
+        string xmlFilePath = "write.xml";
+        xmlDoc.Save(xmlFilePath);
+        Console.WriteLine("Data written to XML file.");
+    }
 
-        Console.WriteLine("XML document saved successfully.");
+    static void AddStudent(XmlDocument xmlDoc, XmlElement rootElement, string name, int age, int id)
+    {
+        XmlElement studentElement = xmlDoc.CreateElement("Student");
+
+        XmlElement nameElement = xmlDoc.CreateElement("Name");
+        nameElement.InnerText = name;
+
+        XmlElement ageElement = xmlDoc.CreateElement("Age");
+        ageElement.InnerText = age.ToString();
+
+        studentElement.AppendChild(nameElement);
+        studentElement.AppendChild(ageElement);
+
+        studentElement.SetAttribute("ID", id.ToString());
+
+        rootElement.AppendChild(studentElement);
     }
 }
+
 
 
 
@@ -56,25 +64,26 @@ FOR READING XML AS DOCUMENT
 using System;
 using System.Xml;
 
-class Program
+class Program1
 {
     static void Main()
     {
-        // Load the XML document from a file
+        string xmlFilePath = "write.xml";
+
+        // Create a new XML document
         XmlDocument xmlDoc = new XmlDocument();
-        xmlDoc.Load("students.xml");
+        xmlDoc.Load(xmlFilePath);
 
-        // Get the root element
-        XmlElement rootElement = xmlDoc.DocumentElement;
+        // Select all "Student" elements
+        XmlNodeList studentNodes = xmlDoc.SelectNodes("/Students/Student");
 
-        // Loop through the child elements (students)
-        foreach (XmlElement studentElement in rootElement.ChildNodes)
+        foreach (XmlNode studentNode in studentNodes)
         {
-            string studentId = studentElement.GetAttribute("ID");
-            string name = studentElement.SelectSingleNode("Name").InnerText;
-            string age = studentElement.SelectSingleNode("Age").InnerText;
+            string name = studentNode.SelectSingleNode("Name").InnerText;
+            string age = studentNode.SelectSingleNode("Age").InnerText;
+            string id = ((XmlElement)studentNode).GetAttribute("ID");
 
-            Console.WriteLine("Student ID: {0}, Name: {1}, Age: {2} ",studentId,name,age);
+            Console.WriteLine("Name: {0}, Age: {1}, ID: {2}",name,age,id);
         }
     }
 }
@@ -83,13 +92,22 @@ class Program
 
 
 
-
 XML File.
 
-<Student>
-    <Name>John Doe</Name>
-    <Age>25</Age>
-</Student>
+<students>
+    <student>
+        <name>Dipankar</name>
+        <age>25</age>
+    </student>
+    <student>
+        <name>Debajani</name>
+        <age>25</age>
+    </student>
+    <student>
+        <name>Brajendra</name>
+        <age>25</age>
+    </student>
+</students>
 
 
 
@@ -101,14 +119,24 @@ Deserialization code
 
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
 
-// Define a class that matches the XML structure
 [Serializable]
+[XmlRoot("students")]
+public class Students
+{
+    [XmlElement("student")]
+    public List<Student> StudentList { get; set; }
+}
+
 public class Student
 {
+    [XmlElement("name")]
     public string Name { get; set; }
+
+    [XmlElement("age")]
     public int Age { get; set; }
 }
 
@@ -116,21 +144,21 @@ class Program
 {
     static void Main()
     {
-        // Read the XML data from the file
-        string xmlData = File.ReadAllText("student.xml");
+        string xmlFilePath = "Brajendra.xml"; // Replace with the path to your XML file
+        string xmlData = File.ReadAllText(xmlFilePath);
 
-        // Create an XmlSerializer for the Student class
-        XmlSerializer serializer = new XmlSerializer(typeof(Student));
+        XmlSerializer serializer = new XmlSerializer(typeof(Students));
 
-        // Deserialize the XML data into a Student object
-        using (TextReader reader = new StringReader(xmlData))
+        using (StringReader reader = new StringReader(xmlData))
         {
-            Student student = (Student)serializer.Deserialize(reader);
+            Students students = (Students)serializer.Deserialize(reader);
 
-            // Access the deserialized object's properties
-            Console.WriteLine("Name: " + student.Name);
-            Console.WriteLine("Age: " + student.Age);
+            foreach (var student in students.StudentList)
+            {
+                Console.WriteLine("Name:{0}", student.Name);
+                Console.WriteLine("Age:{0}", student.Age);
+                Console.WriteLine();
+            }
         }
     }
 }
-
